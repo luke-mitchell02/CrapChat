@@ -1,0 +1,20 @@
+{
+    "name": "web-socket-playtime",
+    "version": "0.0.1",
+    "description": "My first Javascript app",
+    "type": "module",
+    "dependencies": {
+        "ws": "^8.21.3"
+    },
+    "devDependencies": {
+        "@eslint/css": "^2.0.0",
+        "@eslint/js": "^10.0.1",
+        "@eslint/json": "^2.1.0",
+        "@eslint/markdown": "^8.0.3",
+        "eslint": "^10.11.0",
+        "globals": "^17.12.0"
+    },
+    "scripts": {
+        "start": "node --env-file=.env Server/server.js"
+    }
+}

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <title>CrapChat - Login</title>
+
+    <link href="styles/styles.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+</head>
+<body class="loginWindow">
+    <div class="loginPanel">
+        <form class="loginForm">
+            <div class="loginPanelTitle">
+                <p>CRAPCHAT - MEMBER LOGIN</p>
+                <span class="loginSubtitle">Welcome back - enter your details below.</span>
+            </div>
+
+            <div class="input-wrapper">
+                 <i class="fa-solid fa-user input-icon"></i>
+                <input class="login-input" type="text" id="login-input-username" placeholder="Username">
+            </div>
+            
+            <div class="input-wrapper">
+                <i class="fa-solid fa-lock input-icon"></i>
+                <input class="login-input" type="password" id="login-input-password" placeholder="Password">
+            </div>
+            
+            <button class="login-button" type="submit" id="login-button">LOGIN</button>
+            <span class="invalid-login-text"> Incorrect Username or Password! </span>
+            <div class="loginLinks">
+                <a href="#">Forgot Username / Password?</a>
+                <a href="register.html">Register an account</a>
+            </div>
+        </form>
+    </div>
+
+    <script src="login.js"></script>
+</body>
+</html>

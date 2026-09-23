@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrapChat</title>
+
+    <link rel="stylesheet" href="styles/styles.css">
+</head>
+
+<body class="chatWindow">
+    <aside class="sidebar">
+        <h2 class="sidebar-title">Chats</h2>
+        <ul class="chat-list" id="chat-list"></ul>
+    </aside>
+
+    <div class="chat-main">
+        <header class="chat-header">
+            <div class="chat-header-info" id="chat-header-info" style="display: none;">
+                <span class="avatar">A</span>
+                <div class="chat-header-text">
+                    <span class="chat-header-name" id="chat-partner-name">alice</span>
+                    <span class="chat-header-status" id="chat-partner-status">
+                        <span class="status-dot online"></span> Online
+                    </span>
+                </div>
+            </div>
+
+            <details class="current-user" id="current-user">
+                <summary class="current-user-trigger">
+                    <span class="avatar">Y</span>
+                    <span class="current-user-name" id="current-user-name">You</span>
+                </summary>
+                <div class="current-user-menu">
+                    <button class="logout-button" id="logout-button" type="button">Log out</button>
+                </div>
+            </details>
+        </header>
+
+        <div class="chat-empty-state" id="chat-empty-state">
+            <p>Select a chat to start messaging</p>
+        </div>
+
+        <div class="chat-active" id="chat-active" style="display: none;">
+            <div class="chat-box" id="chat-box"></div>
+
+            <div class="user-input">
+                <form id="chat-box-form">
+                    <input type="text" id="user-input" placeholder="Type a message...">
+                    <button type="submit" class="send-button">Send</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="client.js"></script>
+</body>
+</html>
