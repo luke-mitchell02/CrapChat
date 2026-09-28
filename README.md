@@ -6,14 +6,25 @@ A real-time chat app built as my first proper JavaScript project. I wanted hands
 
 - Username / password accounts, with passwords hashed (scrypt + per-user salt) rather than stored in plain text
 - Invite-key-gated registration
-- Session-based login via HTTP-only cookies
+- Session-based login via HTTP-only cookies, with logout from the user menu
+- Logged-in users skip the login page, and the chat page redirects to login if you're not logged in
 - Real-time 1-on-1 messaging over WebSockets
-- Online/offline presence for other users
-- Persistent message history (SQLite)
+- Online/offline presence for other users, shown in the sidebar and updated live in the chat header
+- Chat header showing the other person's name, avatar initial, and status
+- Persistent message history (SQLite) — the latest 100 messages load when you open a conversation
+- Message timestamps, shown in the reader's local time, with day dividers ("Today", "Yesterday", dates) between days
+- WhatsApp-style ticks on your messages: grey once the server has it, fading to blue when it's been read
+- Read tracking — messages count as read once the chat has been open in a focused tab for 5 seconds, or as soon as you reply
+- A "New messages" divider above the first unread message, which the chat opens at
+- Smart auto-scroll: the chat follows new messages if you're at the bottom, but leaves you alone if you've scrolled up to read, with a button to jump back to the latest
+- A heartbeat that keeps the connection alive through proxies and drops clients that have gone away, so online/offline status stays accurate
+- Server-side validation, so malformed requests and WebSocket messages are rejected instead of crashing the server
+- Static files served by Node with a path traversal guard, so requests can't reach anything outside the `Client` folder
+- Styled scrollbars and light animations (which turn off if your system is set to reduce motion)
 
 ## Tech stack
 
-- **Backend:** Node.js — raw `http` module (no Express) + `ws` for the WebSocket side
+- **Backend:** Node.js — raw `http` module (no Express) serving the pages, API, and static files, + `ws` for the WebSocket side
 - **Database:** SQLite, via Node's built-in `node:sqlite` module (no external driver needed)
 - **Frontend:** Plain HTML, CSS, and JavaScript — no build step, no framework
 
@@ -35,7 +46,7 @@ A real-time chat app built as my first proper JavaScript project. I wanted hands
    ```bash
    npm start
    ```
-   This listens on port `8090` by default, serving the HTTP API and the WebSocket connection from the same process. The SQLite database and its tables are created automatically on first run.
+   This listens on port `8090` by default, serving the pages, the HTTP API and the WebSocket connection from the same process. The SQLite database and its tables are created automatically on first run.
 
 ## Usage
 
@@ -45,23 +56,23 @@ A real-time chat app built as my first proper JavaScript project. I wanted hands
     -H "Content-Type: application/json" \
     -d '{"username":"alice","password":"yourpassword","authkey":"YOUR_ADMIN_AUTHKEY"}'
   ```
-- **Logging in:** open `Client/index.html`, log in with a registered account, and you'll be redirected to the chat page.
-- **Chatting:** the sidebar lists every registered user with their online/offline status — click one to open a conversation with them.
+- **Logging in:** go to `http://localhost:8090`, log in with a registered account, and you'll be redirected to the chat page. If you're already logged in, you'll skip straight to the chat.
+- **Chatting:** the sidebar lists every registered user with their online/offline status — click one to open a conversation with them. Your previous messages load automatically, opening at the first unread message if there is one.
+- **Logging out:** click your name at the top right and choose **Log out**.
 
 ## Roadmap
 
 This is still very much a work in progress. Planned next steps:
 
 **Finishing what's there**
-- Finish the logout flow
+- Reconnect automatically when the WebSocket drops — the heartbeat keeps idle connections alive, but after a real disconnect (server restart, network change) the page still needs a refresh
+- Support being logged in on more than one tab/device at once — currently only the most recently opened one gets live messages and read updates
 - Finish the self-service registration + invite-code system (registration currently only works via a direct API call, gated by the admin key)
 - Wire up the "Forgot Username / Password?" link on the login page — it's already there, just not functional yet
-- Show message timestamps in the chat UI — already sent over the WebSocket, just not rendered yet
-- Populate the chat header with the other person's name, icon, and status when a conversation is opened — the UI slot for it already exists, it's just not filled in
+- Load older messages when scrolling up (a conversation currently loads only its latest 100 messages)
 
 **Real-time UX**
 - Typing indicators ("alice is typing...")
-- Read receipts
 - Unread message badges in the sidebar
 - Emoji reactions on messages
 
@@ -78,6 +89,7 @@ This is still very much a work in progress. Planned next steps:
 **Branding & polish**
 - Dark/light mode toggle (currently dark-only)
 - A proper favicon and logo
+- Smoother transitions for the sidebar and status dots (they currently update instantly)
 
 **Bigger/stretch ideas**
 - Browser notifications for new messages when the tab isn't focused
@@ -89,11 +101,11 @@ This is still very much a work in progress. Planned next steps:
 
 ## A note on deployment
 
-I run this behind nginx (serving the static files and reverse-proxying the API/WebSocket traffic) with Cloudflare in front of it. That setup isn't covered here — this README only covers running the app itself.
+I run this behind nginx (handling HTTPS and reverse-proxying everything to Node) with Cloudflare in front of it. That setup isn't covered here — this README only covers running the app itself.
 
 ## A note on AI assistance
 
-I used Claude Code throughout this project, mainly as a learning aid — explaining concepts, reviewing my code, and catching bugs — rather than to write the application logic for me. It also helped speed up some structural/mechanical work (CSS layout, nginx config, refactoring sweeps) and suggested UI improvements. The core logic — auth, sessions, WebSocket handling, the chat functionality itself — I wrote myself.
+I used Claude Code throughout this project, mainly as a learning aid — explaining concepts, reviewing my code, and catching bugs. It also helped speed up some structural/mechanical work (CSS layout, nginx config, refactoring sweeps) and suggested UI improvements. The foundations — auth, sessions, the WebSocket server, messaging and the heartbeat — I wrote myself.
 
 Claude code was used to generate this README file also, as I am not great at those.
 

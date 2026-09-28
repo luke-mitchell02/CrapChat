@@ -11,11 +11,44 @@ body {
     --color-bg-end: rgb(22, 24, 30);
     --color-accent: rgb(52, 199, 89);
     --color-accent-hover: rgb(43, 168, 75);
+    --color-send: rgb(0, 168, 132);  /* WhatsApp's send button green (#00A884) */
+    --color-send-hover: rgb(0, 143, 112);
+    --color-sent-bg: rgb(0, 92, 75);  /* WhatsApp's dark-mode sent bubble (#005C4B): white text on it is 8:1 */
     --color-text: rgb(230, 231, 235);
     --color-muted: rgb(158, 161, 170);
     --color-input-bg: rgb(44, 47, 55);
     --color-panel-bg: rgb(30, 32, 39);
     --color-elevated: rgb(56, 59, 69);
+
+    /* Tells the browser this is a dark UI, so native controls (scrollbars, autofill) default to dark */
+    color-scheme: dark;
+}
+
+/* Scrollbars */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-elevated) transparent;
+}
+
+/* Fallback for browsers without scrollbar-width / scrollbar-color */
+@supports not (scrollbar-width: thin) {
+    ::-webkit-scrollbar {
+        width: 0.5rem;
+        height: 0.5rem;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background-color: var(--color-elevated);
+        border-radius: 0.25rem;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background-color: var(--color-muted);
+    }
 }
 
 html {
@@ -116,6 +149,23 @@ html {
 
 .login-input::placeholder {
     color: var(--color-muted);
+}
+
+/* Browsers paint autofilled inputs with their own light background; cover it with the wrapper's colour.
+   Separate rules on purpose: a selector list is dropped entirely if one selector is unsupported. */
+.login-input:-webkit-autofill,
+.login-input:-webkit-autofill:hover,
+.login-input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--color-text);
+    caret-color: var(--color-text);
+    box-shadow: 0 0 0 1000px var(--color-input-bg) inset;
+    transition: background-color 9999s ease-in-out 0s;
+}
+
+.login-input:autofill {
+    box-shadow: 0 0 0 1000px var(--color-input-bg) inset;
+    -webkit-text-fill-color: var(--color-text);
+    caret-color: var(--color-text);
 }
 
 .login-button {
@@ -397,6 +447,53 @@ html {
     min-height: 0;
 }
 
+/* Holds the chat box so the jump-to-latest button can be positioned over its bottom corner */
+.chat-box-wrapper {
+    position: relative;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.scroll-bottom-button {
+    position: absolute;
+    right: 1.5rem;
+    bottom: 1rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background-color: var(--color-elevated);
+    color: var(--color-text);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    cursor: pointer;
+
+    /* Hidden until the JS adds .visible - visibility also takes it out of the tab order */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(0.5rem);
+}
+
+.scroll-bottom-button.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.scroll-bottom-button:hover {
+    background-color: var(--color-input-bg);
+}
+
+.scroll-bottom-button svg {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
 .chat-box {
     flex-grow: 1;
     overflow-y: auto;
@@ -407,8 +504,8 @@ html {
 }
 
 .chat-message {
-    max-width: 60%;
-    padding: 0.75rem 1rem;
+    max-width: 70%;
+    padding: 0.5rem 0.875rem;  /* Less vertical than horizontal, so bubbles read wider than tall */
     border-radius: 1rem;
     font-size: 0.95rem;
     line-height: 1.4;
@@ -417,7 +514,7 @@ html {
 
 .chat-message.sent {
     align-self: flex-end;
-    background-color: var(--color-accent);
+    background-color: var(--color-sent-bg);
     color: white;
     border-bottom-right-radius: 0.25rem;
 }
@@ -429,6 +526,15 @@ html {
     border-bottom-left-radius: 0.25rem;
 }
 
+/* The time floats to the bottom right of the bubble. It sits after the text in the DOM, so it
+   shares the last line with the text when there's room and drops onto its own line when there isn't. */
+.chat-message .message-time {
+    float: right;
+    margin: 0.35rem 0 -0.2rem 0.75rem;
+    font-size: 0.7rem;
+    opacity: 0.85;
+}
+
 .chat-message.join {
     align-self: center;
     background: none;
@@ -436,6 +542,66 @@ html {
     font-size: 0.8rem;
     font-style: italic;
     max-width: 100%;
+}
+
+/* Delivery ticks, drawn after the time on your own messages.
+   The JS only sets data-status="sent" | "delivered" | "read" on the .chat-message div.
+   The tick shape is an SVG used as a mask, so its colour comes from background-color. */
+.chat-message.sent[data-status] .message-time::after {
+    content: '';
+    display: inline-block;
+    width: 1.1rem;
+    height: 0.7rem;
+    margin-left: 0.25rem;
+    vertical-align: -0.05rem;
+    background-color: rgba(255, 255, 255, 0.6);
+    -webkit-mask: var(--tick-icon) no-repeat center / contain;
+    mask: var(--tick-icon) no-repeat center / contain;
+}
+
+.chat-message.sent[data-status="sent"] {
+    --tick-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 11' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 6l3.5 3.5L14 1.5'/%3E%3C/svg%3E");
+}
+
+.chat-message.sent[data-status="delivered"],
+.chat-message.sent[data-status="read"] {
+    --tick-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 11' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 6l3.5 3.5L12 1.5M6.5 7.5l2 2L16 1.5'/%3E%3C/svg%3E");
+}
+
+.chat-message.sent[data-status="read"] .message-time::after {
+    background-color: rgb(83, 189, 235);  /* WhatsApp's read-receipt blue (#53BDEB) */
+}
+
+/* Day divider ("Today", "Yesterday", "Mon 21 Sep"): a small centred pill between messages.
+   JS creates: <div class="day-divider">Today</div> */
+.day-divider {
+    align-self: center;
+    margin: 0.5rem 0;
+    padding: 0.3rem 0.75rem;
+    border-radius: 0.5rem;
+    background-color: var(--color-panel-bg);
+    color: var(--color-muted);
+    font-size: 0.75rem;
+}
+
+/* "New messages" divider above the first unread message: a label with a line either side.
+   JS creates: <div class="unread-divider">New messages</div> */
+.unread-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0.5rem 0;
+    color: var(--color-accent);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.unread-divider::before,
+.unread-divider::after {
+    content: '';
+    flex-grow: 1;
+    border-top: 1px solid currentColor;
+    opacity: 0.5;
 }
 
 .user-input {
@@ -473,16 +639,68 @@ html {
 }
 
 .send-button {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
     border: 0;
-    background-color: var(--color-accent);
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border-radius: 2rem;
-    font-weight: bold;
+    border-radius: 50%;
+    background-color: var(--color-send);
+    color: var(--color-bg-start);  /* The icon uses currentColor. Dark on this green is 6:1, white is only 3:1 */
     cursor: pointer;
     transition: background-color 0.15s;
 }
 
+.send-button svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-left: 0.15rem;  /* The plane's visual weight is on the left, so nudge it to look centred */
+}
+
+.send-button:focus-visible {
+    outline: 2px solid var(--color-text);
+    outline-offset: 2px;
+}
+
 .send-button:hover {
-    background-color: var(--color-accent-hover);
+    background-color: var(--color-send-hover);
+}
+
+/* Motion */
+@keyframes messageIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Only animate when the user hasn't asked their OS for reduced motion */
+@media (prefers-reduced-motion: no-preference) {
+    /* Only live messages get this class from the JS, so loading history doesn't animate 100 bubbles */
+    .chat-message.animate-in {
+        animation: messageIn 0.2s ease-out;
+    }
+
+    /* Ticks fade from grey to blue when the message is read. A transition only runs when the
+       value changes, so ticks that load already blue from history don't animate */
+    .chat-message.sent[data-status] .message-time::after {
+        transition: background-color 0.4s ease-out;
+    }
+
+    /* Jump-to-latest button slides up and fades in/out */
+    .scroll-bottom-button {
+        transition: opacity 0.2s ease-out, transform 0.2s ease-out, visibility 0.2s;
+    }
+
+    /* An animation restarts when an element goes from display: none to visible,
+       so these fade in when the JS un-hides them, with no extra JS */
+    .chat-active,
+    .chat-header-info {
+        animation: fadeIn 0.25s ease-out;
+    }
+
+    .current-user-menu {
+        animation: fadeIn 0.15s ease-out;
+    }
 }

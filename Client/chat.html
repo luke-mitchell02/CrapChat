@@ -17,12 +17,10 @@
     <div class="chat-main">
         <header class="chat-header">
             <div class="chat-header-info" id="chat-header-info" style="display: none;">
-                <span class="avatar">A</span>
+                <span class="avatar"></span>
                 <div class="chat-header-text">
-                    <span class="chat-header-name" id="chat-partner-name">alice</span>
-                    <span class="chat-header-status" id="chat-partner-status">
-                        <span class="status-dot online"></span> Online
-                    </span>
+                    <span class="chat-header-name" id="chat-partner-name"></span>
+                    <span class="chat-header-status" id="chat-partner-status"></span>
                 </div>
             </div>
 
@@ -42,12 +40,25 @@
         </div>
 
         <div class="chat-active" id="chat-active" style="display: none;">
-            <div class="chat-box" id="chat-box"></div>
+            <div class="chat-box-wrapper">
+                <div class="chat-box" id="chat-box"></div>
+
+                <!-- Shown by client.js once the user scrolls up away from the newest messages -->
+                <button type="button" class="scroll-bottom-button" id="scroll-bottom-button" aria-label="Jump to latest messages" title="Jump to latest messages">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M6 9l6 6 6-6"/>
+                    </svg>
+                </button>
+            </div>
 
             <div class="user-input">
                 <form id="chat-box-form">
                     <input type="text" id="user-input" placeholder="Type a message...">
-                    <button type="submit" class="send-button">Send</button>
+                    <button type="submit" class="send-button" aria-label="Send" title="Send">
+                        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z"/>
+                        </svg>
+                    </button>
                 </form>
             </div>
         </div>
